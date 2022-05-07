@@ -1,40 +1,96 @@
+import { createElement } from "react";
 import { createStore } from "redux";
 
-const add = document.getElementById("add");
-const minus = document.getElementById("minus");
-const number = document.querySelector("span");
+const form = document.querySelector("form");
+const input = document.querySelector("input");
+const ul = document.querySelector("ul");
 
-const initialState = 0;
+const ADD_TODO = "ADD_TODO";
+const DELETE_TODO = "DELETE_TODO";
+// const EDIT_TODO = 'EDIT_TODO';
 
-const ADD = "ADD";
-const MINUS = "MINUS";
+const addTodo = (text) => {
+  return {
+    type: ADD_TODO,
+    text: text,
+  };
+};
 
-// modify your data only by reducers
-const countModifier = (state = initialState, action) => {
+const deleteTodo = (id) => {
+  return {
+    type: DELETE_TODO,
+    id: id,
+  };
+};
+
+const todoModifier = (state = [], action) => {
   switch (action.type) {
-    case ADD:
-      return state + 1;
-    case MINUS:
-      return state - 1;
+    case ADD_TODO:
+      return [...state, { text: action.text, date: Date.now() }];
+    case DELETE_TODO:
+      return state.filter((todo) => todo.date !== parseInt(action.id));
     default:
       return state;
   }
 };
 
-// store your data
-const countStore = createStore(countModifier);
+const store = createStore(todoModifier);
 
-const onChange = () => {
-  number.innerText = countStore.getState();
+const dispatchAddTodo = (text) => {
+  store.dispatch(addTodo(text));
 };
 
-//subscribe -> onChange func will run when store was changed.
-countStore.subscribe(onChange);
+const dispatchDeleteTodo = (id) => {
+  store.dispatch(deleteTodo(id));
+};
 
-add.addEventListener("click", () => {
-  countStore.dispatch({ type: ADD });
-});
+const applyToDoList = (text, date) => {
+  const liComp = document.createElement("li");
+  const textComp = document.createElement("p");
+  const dateComp = document.createElement("p");
+  const deleteButton = document.createElement("button");
+  const dateToString = new Date(date)
+    .toString()
+    .split(" ")
+    .slice(0, 5)
+    .join(" ");
 
-minus.addEventListener("click", () => {
-  countStore.dispatch({ type: MINUS });
-});
+  dateComp.innerText = dateToString;
+  liComp.id = date;
+  textComp.innerText = text;
+
+  deleteButton.innerText = "DEL";
+  deleteButton.addEventListener("click", () => dispatchDeleteTodo(date));
+
+  liComp.appendChild(textComp);
+  liComp.appendChild(dateComp);
+  liComp.appendChild(deleteButton);
+
+  ul.appendChild(liComp);
+};
+
+const paintToDos = () => {
+  ul.innerText = "";
+
+  const todoList = store.getState();
+  console.log(todoList);
+
+  todoList.forEach((todo) => {
+    console.log(todo);
+    console.log(todo.text, todo.date);
+    applyToDoList(todo.text, todo.date);
+  });
+};
+
+store.subscribe(() => paintToDos());
+
+const onSubmit = (event) => {
+  event.preventDefault();
+
+  const toDo = input.value;
+  input.value = "";
+
+  dispatchAddTodo(toDo);
+};
+
+form.addEventListener("submit", onSubmit);
