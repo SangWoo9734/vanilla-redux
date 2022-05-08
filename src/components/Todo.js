@@ -1,7 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
-import { actionCreators } from "../store";
+import { remove } from "../store";
 
 const milisecToDate = (time) => {
   return new Date(time).toString().split(" ").slice(0, 5).join(" ");
@@ -21,7 +21,7 @@ function ToDo({ text, id, onBtnClick }) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    onBtnClick: (id) => dispatch(actionCreators.deleteTodo(parseInt(id))),
+    onBtnClick: (id) => dispatch(remove(parseInt(id))),
   };
 }
 
